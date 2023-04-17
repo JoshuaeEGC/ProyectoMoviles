@@ -7,7 +7,7 @@ Future<String> generateImage(String keywords) async {
     headers: {
       'Content-Type': 'application/json',
       'Authorization':
-          'Bearer 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',
+          'Bearer APITOKEN',
     },
     body: jsonEncode({
       'model': 'image-alpha-001',
