@@ -8,7 +8,7 @@ Future<String> generateStory(int age, String genre, String keywords) async {
     headers: {
       'Content-Type': 'application/json',
       'Authorization':
-          'Bearer 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',
+          'Bearer APITOKEN',
     },
     encoding: utf8,
     body: jsonEncode({
