@@ -14,9 +14,9 @@ Future<String> generateStory(int age, String genre, String keywords) async {
     body: jsonEncode({
       "model": "text-davinci-003",
       'prompt':
-          'Generar un cuento de $age años de edad en el género $genre con las palabras clave $keywords.',
+          'Generar un cuento para un niño de $age años de edad de genero literario $genre sobre estos temas $keywords. El cuento damelo sin acentos, no importa si en gramatica esta mal, no quiero acentos, ni tampoco ñ en caso de salir ñ cambiar por n, recuerda cumplir todo lo requerido',
       'temperature': 1,
-      'max_tokens': 500,
+      'max_tokens': 1000,
     }),
   );
 

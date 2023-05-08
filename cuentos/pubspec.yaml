@@ -36,6 +36,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   http: ^0.13.5
+  firebase_core: ^2.10.0
+  flutter_bloc: ^8.1.2
+  firebase_auth:
+  flutter_auth_buttons:
+  provider: ^6.0.5
+  google_sign_in: ^6.1.0
+  equatable: ^2.0.5
+  font_awesome_flutter: ^10.4.0
+  auth_buttons: ^3.0.0
+  cloud_firestore:
+  translator:
 
 dev_dependencies:
   flutter_test:
