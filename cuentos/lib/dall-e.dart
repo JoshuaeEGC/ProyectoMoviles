@@ -6,8 +6,7 @@ Future<String> generateImage(String keywords) async {
     Uri.parse('https://api.openai.com/v1/images/generations'),
     headers: {
       'Content-Type': 'application/json',
-      'Authorization':
-          'Bearer APITOKEN',
+      'Authorization': 'Bearer APIKEY',
     },
     body: jsonEncode({
       'model': 'image-alpha-001',

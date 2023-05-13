@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'auth/bloc/auth_bloc.dart';
-import 'dall-e.dart';
-import 'gpt.dart';
 
 class home_page extends StatefulWidget {
   const home_page({
@@ -20,17 +18,17 @@ class home_page extends StatefulWidget {
 class _home_pageState extends State<home_page> {
   int _currentIndex = 0;
   final _pagesList = [
-    Generar_Cuento(),
+    GenerarCuento(),
     Cuentos(),
     UserInfoScreen(),
   ];
   final _pagesName = ["Generar", "Cuentos", "Perfil"];
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color.fromARGB(159, 6, 255, 164),
         title: Text('${_pagesName[_currentIndex]}'),
         actions: [
           IconButton(
@@ -46,6 +44,7 @@ class _home_pageState extends State<home_page> {
         children: _pagesList,
       ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Color.fromARGB(159, 6, 255, 164),
         selectedIndex: _currentIndex,
         onDestinationSelected: (value) {
           setState(() {

@@ -7,8 +7,7 @@ Future<String> generateStory(int age, String genre, String keywords) async {
     Uri.parse('https://api.openai.com/v1/completions'),
     headers: {
       'Content-Type': 'application/json',
-      'Authorization':
-          'Bearer APITOKEN',
+      'Authorization': 'Bearer APIKEY',
     },
     encoding: utf8,
     body: jsonEncode({

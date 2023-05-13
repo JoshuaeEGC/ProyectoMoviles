@@ -1,59 +1,57 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cuentos/result_page.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:translator/translator.dart';
+
 import 'dall-e.dart';
 import 'gpt.dart';
 
-class Generar_Cuento extends StatefulWidget {
-  const Generar_Cuento({super.key});
+class GenerarCuento extends StatefulWidget {
+  const GenerarCuento({Key? key});
 
   @override
-  State<Generar_Cuento> createState() => _Generar_CuentoState();
+  State<GenerarCuento> createState() => _GenerarCuentoState();
 }
 
-class _Generar_CuentoState extends State<Generar_Cuento> {
+class _GenerarCuentoState extends State<GenerarCuento> {
   final _formKey = GlobalKey<FormState>();
-  late int _age;
-  late String _genre;
+  int? _selectedAge;
+  String? _selectedGenre;
   late String _keywords;
   String _story = '';
   String _imageUrl = '';
-  Future SaveToDatabase() async {
-    try {
-      Map<String, dynamic> data = {};
-      var dbTimeKey = DateTime.now();
-      var formatDate = DateFormat('MMM dd, yyyy');
-      var formatTime = DateFormat('EEEE, hh:mm aaa');
+  bool _isLoading = false;
 
-      String date = formatDate.format(dbTimeKey);
-      String time = formatTime.format(dbTimeKey);
+  List<int> _ageOptions = List.generate(16, (index) => index);
+  List<String> _genreOptions = [
+    'Fantasía',
+    'Terror',
+    'Aventura',
+    'Ciencia ficción'
+  ];
 
-      data = {
-        "image": _imageUrl,
-        "story": _story,
-        'date': date,
-        'time': time,
-      };
-      await FirebaseFirestore.instance.collection('cuentos').add(data);
-    } catch (e) {
-      print("Error al subir");
-    }
-  }
+  Future<void> _generateStoryAndImage() async {
+    FocusScope.of(context).unfocus();
 
-  void _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
     _formKey.currentState!.save();
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      String story = await generateStory(_age, _genre, _keywords);
+      String story =
+          await generateStory(_selectedAge!, _selectedGenre!, _keywords);
       String imageUrl = await generateImage(_keywords);
       setState(() {
         _story = story;
         _imageUrl = imageUrl;
+        _selectedAge = null; // Restablecer la edad a vacío
+        _selectedGenre = null; // Restablecer el género literario a vacío
       });
+      _formKey.currentState!.reset(); // Restablecer los campos del formulario
+      _navigateToResultPage();
     } catch (error) {
       showDialog(
         context: context,
@@ -70,7 +68,19 @@ class _Generar_CuentoState extends State<Generar_Cuento> {
           ],
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _navigateToResultPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ResultPage(story: _story, imageUrl: _imageUrl),
+      ),
+    );
   }
 
   @override
@@ -83,33 +93,46 @@ class _Generar_CuentoState extends State<Generar_Cuento> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              TextFormField(
+              DropdownButtonFormField<int>(
+                value: _selectedAge,
                 decoration: InputDecoration(labelText: 'Edad del niño'),
-                keyboardType: TextInputType.number,
+                items: _ageOptions.map((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  );
+                }).toList(),
                 validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Por favor, ingrese la edad del niño.';
-                  }
-                  final age = int.tryParse(value);
-                  if (age == null || age < 0) {
-                    return 'Por favor, ingrese una edad válida.';
+                  if (value == null) {
+                    return 'Por favor, seleccione la edad del niño.';
                   }
                   return null;
                 },
-                onSaved: (value) {
-                  _age = int.parse(value!);
+                onChanged: (value) {
+                  setState(() {
+                    _selectedAge = value;
+                  });
                 },
               ),
-              TextFormField(
+              DropdownButtonFormField<String>(
+                value: _selectedGenre,
                 decoration: InputDecoration(labelText: 'Género literario'),
+                items: _genreOptions.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
                 validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Por favor, ingrese el género literario.';
+                  if (value == null) {
+                    return 'Por favor, seleccione el género literario.';
                   }
                   return null;
                 },
-                onSaved: (value) {
-                  _genre = value!;
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGenre = value;
+                  });
                 },
               ),
               TextFormField(
@@ -126,37 +149,28 @@ class _Generar_CuentoState extends State<Generar_Cuento> {
                 },
               ),
               SizedBox(height: 32),
-              ElevatedButton(
-                child: Text('Generar cuento e imagen'),
-                onPressed: _submitForm,
-              ),
-              SizedBox(height: 32),
-              if (_story.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    'Cuento generado:',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              if (_story.isNotEmpty)
-                Text(
-                  _story,
-                  style: TextStyle(fontSize: 18),
-                ),
-              if (_imageUrl.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    'Imagen generada:',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              if (_imageUrl.isNotEmpty) Image.network(_imageUrl),
-              ElevatedButton(
-                onPressed: SaveToDatabase,
-                child: Text('Guardar cuento'),
-              ),
+              _isLoading
+                  ? Container(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: Center(
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary:
+                            Color.fromARGB(159, 6, 255, 164), // COlor del boton
+                        onPrimary: Colors.white, // color de texto
+                      ),
+                      child: Text('Generar cuento e imagen'),
+                      onPressed: _generateStoryAndImage,
+                    ),
             ],
           ),
         ),
